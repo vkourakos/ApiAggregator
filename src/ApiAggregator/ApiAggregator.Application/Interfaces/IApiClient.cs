@@ -5,5 +5,5 @@ namespace ApiAggregator.Application.Interfaces;
 public interface IApiClient
 {
     string SourceName { get; }
-    Task<IEnumerable<AggregatedData>> GetDataAsync(string query, CancellationToken cancellationToken);
+    Task<IEnumerable<AggregatedData>> GetData(string query, CancellationToken cancellationToken);
 }

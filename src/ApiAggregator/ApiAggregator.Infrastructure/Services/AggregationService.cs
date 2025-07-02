@@ -36,7 +36,7 @@ public class AggregationService : IAggregationService
     {
         try
         {
-            return await client.GetDataAsync(query, cancellationToken);
+            return await client.GetData(query, cancellationToken);
         }
         catch (Exception ex)
         {
