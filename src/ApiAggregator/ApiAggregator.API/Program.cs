@@ -1,22 +1,30 @@
-var builder = WebApplication.CreateBuilder(args);
+using ApiAggregator.Infrastructure.Startup;
 
-// Add services to the container.
+var builder = WebApplication.CreateBuilder(args);
+var configuration = builder.Configuration;
+var services = builder.Services;
+var env = builder.Environment;
+
+builder.Logging.ConfigureLogging(configuration);
+services.ConfigureDependencyInjection(configuration);
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+
+services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+services.ConfigureSwagger();
 
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+if (env.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+    app.EnableSwagger();
+    app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
 
 app.UseAuthorization();
 
