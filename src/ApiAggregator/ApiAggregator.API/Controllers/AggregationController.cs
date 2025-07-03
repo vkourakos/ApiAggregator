@@ -24,6 +24,7 @@ public class AggregationController : ControllerBase
     [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     public async Task<IActionResult> Get(
     [FromQuery] string query,
+    [FromQuery] string? sources = null,
     [FromQuery] SortField sortBy = SortField.PublishedDate,
     [FromQuery] SortOrder sortOrder = SortOrder.Descending,
     CancellationToken cancellationToken = default)
@@ -33,32 +34,9 @@ public class AggregationController : ControllerBase
             return BadRequest("Query parameter cannot be empty.");
         }
 
-        var aggregatedData = await _aggregationService.AggregateData(query, cancellationToken);
-        var sortedData = SortData(aggregatedData, sortBy, sortOrder);
+        var result = await _aggregationService.AggregateData(
+            query, sortBy, sortOrder, sources, cancellationToken);
 
-        return Ok(sortedData);
-    }
-
-    private static IEnumerable<AggregatedData> SortData(
-        IEnumerable<AggregatedData> data,
-        SortField sortBy,
-        SortOrder sortOrder)
-    {
-        var sorted = sortBy switch
-        {
-            SortField.Title => sortOrder == SortOrder.Ascending
-                ? data.OrderBy(d => d.Title, StringComparer.OrdinalIgnoreCase)
-                : data.OrderByDescending(d => d.Title, StringComparer.OrdinalIgnoreCase),
-
-            SortField.SourceApi => sortOrder == SortOrder.Ascending
-                ? data.OrderBy(d => d.SourceApi, StringComparer.OrdinalIgnoreCase)
-                : data.OrderByDescending(d => d.SourceApi, StringComparer.OrdinalIgnoreCase),
-
-            _ => sortOrder == SortOrder.Ascending
-                ? data.OrderBy(d => d.PublishedDate)
-                : data.OrderByDescending(d => d.PublishedDate)
-        };
-
-        return sorted.ThenBy(d => d.Title);
+        return Ok(result);
     }
 }
