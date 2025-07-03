@@ -10,6 +10,8 @@ var env = builder.Environment;
 builder.Logging.ConfigureLogging(configuration);
 services.ConfigureDependencyInjection(configuration);
 
+services.AddMemoryCache();
+
 services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -39,10 +41,12 @@ if (env.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
-app.UseRateLimiter();
+
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseRateLimiter();
 
 app.UseAuthorization();
 
