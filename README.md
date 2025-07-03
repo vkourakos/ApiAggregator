@@ -83,13 +83,15 @@ Retrieves, aggregates, and sorts data from all configured sources based on a sin
 | Parameter   | Type   | Description                                                                                                                              | Required | Default         |
 |-------------|--------|------------------------------------------------------------------------------------------------------------------------------------------|----------|-----------------|
 | `query`     | string | The search term. It is used as a keyword for News, a city for Weather, and a username for GitHub.                                       | Yes      | N/A             |
+| `sources`   | string | A comma-separated list of sources to include (e.g., `GitHub,NewsAPI`). If omitted, all sources are returned.                               | No       | `null` (all)    |
 | `sortBy`    | string | The field to sort the results by. Valid options are `date`, `title`, `source`.                                                           | No       | `date`          |
 | `sortOrder` | string | The order for sorting. Valid options are `asc`, `desc`.                                                                                  | No       | `desc`          |
 
-#### Example Request
+#### Example Requests
 
 ```http
-GET https://localhost:7123/api/aggregation?query=microsoft&sortBy=title&sortOrder=asc
+GET https://localhost:7291/api/Aggregation?query=Athens
+GET https://localhost:7291/api/Aggregation?query=Athens&sources=Github&sortBy=Title&sortOrder=Ascending
 ```
 
 #### Example Response
