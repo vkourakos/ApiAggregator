@@ -8,7 +8,7 @@ The application is built using .NET 8 and ASP.NET Core, following Clean Architec
 
 -   **Multi-Source Aggregation:** Fetches data in parallel from 3 external APIs: NewsAPI, WeatherAPI.com, and the GitHub API.
 -   **Unified Endpoint:** Provides a single endpoint (`GET /api/aggregation`) to access the combined data.
--   **Sorting:** Supports type-safe sorting on multiple fields (`date`, `title`, `source`) and in multiple orders (`asc`, `desc`).
+-   **Filtering & Sorting:** Supports filtering results by source and type-safe sorting on multiple fields (`date`, `title`, `source`) and in multiple orders (`asc`, `desc`).
 -   **Error Handling:** Implements a fallback mechanism where a failure from one external API does not affect the results from others. Errors are logged for debugging.
 -   **API Security:** The public endpoint is protected from abuse using ASP.NET Core's built-in rate limiting (20 requests per minute).
 -   **Performance Optimized:**
