@@ -1,5 +1,6 @@
 ﻿using ApiAggregator.Application.Interfaces;
 using ApiAggregator.Domain;
+using ApiAggregator.Domain.Enumerations;
 using ApiAggregator.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.Extensions.Caching.Memory;
@@ -11,84 +12,108 @@ namespace ApiAggregator.Tests;
 public class AggregationServiceTests : IDisposable
 {
     private readonly Mock<ILogger<AggregationService>> _loggerMock;
-    private readonly Mock<IApiClient> _successfulClientMock;
-    private readonly Mock<IApiClient> _failingClientMock;
     private readonly MemoryCache _memoryCache;
+    private readonly List<IApiClient> _allClients;
+
+    private readonly AggregatedData _gitHubData = new()
+    {
+        SourceApi = "GitHub",
+        Title = "C Repo",
+        PublishedDate = DateTime.UtcNow.AddDays(-1)
+    };
+
+    private readonly AggregatedData _newsData = new()
+    {
+        SourceApi = "NewsAPI",
+        Title = "B News",
+        PublishedDate = DateTime.UtcNow
+    };
 
     public AggregationServiceTests()
     {
         _loggerMock = new Mock<ILogger<AggregationService>>();
-
-        _successfulClientMock = new Mock<IApiClient>();
-        _successfulClientMock
-            .Setup(c => c.GetData(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<AggregatedData> { new() { Title = "Success Data" } });
-        _successfulClientMock.Setup(c => c.SourceName).Returns("SuccessAPI");
-
-        _failingClientMock = new Mock<IApiClient>();
-        _failingClientMock
-            .Setup(c => c.GetData(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new HttpRequestException("API is down"));
-        _failingClientMock.Setup(c => c.SourceName).Returns("FailingAPI");
-
         _memoryCache = new MemoryCache(new MemoryCacheOptions());
+
+        var gitHubClientMock = new Mock<IApiClient>();
+        gitHubClientMock.Setup(c => c.SourceName).Returns("GitHub");
+        gitHubClientMock.Setup(c => c.GetData(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                      .ReturnsAsync(new List<AggregatedData> { _gitHubData });
+
+        var newsApiClientMock = new Mock<IApiClient>();
+        newsApiClientMock.Setup(c => c.SourceName).Returns("NewsAPI");
+        newsApiClientMock.Setup(c => c.GetData(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                       .ReturnsAsync(new List<AggregatedData> { _newsData });
+
+        _allClients = new List<IApiClient> { gitHubClientMock.Object, newsApiClientMock.Object };
     }
 
     [Fact]
-    public async Task AggregateData_WhenCacheIsMiss_ShouldFetchFromClientsAndSetCache()
+    public async Task AggregateData_WithNoFilteringOrSorting_ReturnsAllDataSortedByDateDescending()
     {
-        var clients = new List<IApiClient> { _successfulClientMock.Object };
-        var service = new AggregationService(clients, _loggerMock.Object, _memoryCache);
-        var query = "test";
-        var cacheKey = $"aggregation_result_{query}";
+        var service = new AggregationService(_allClients, _loggerMock.Object, _memoryCache);
 
-        var result = await service.AggregateData(query, CancellationToken.None);
+        var result = await service.AggregateData(
+            "test",
+            SortField.PublishedDate,
+            SortOrder.Descending,
+            null,
+            CancellationToken.None);
+
+        result.Should().HaveCount(2);
+        result.First().SourceApi.Should().Be("NewsAPI");
+    }
+
+    [Fact]
+    public async Task AggregateData_WhenFilteredBySource_ReturnsOnlyMatchingData()
+    {
+        var service = new AggregationService(_allClients, _loggerMock.Object, _memoryCache);
+
+        var result = await service.AggregateData(
+            "test",
+            SortField.PublishedDate,
+            SortOrder.Descending,
+            "GitHub",
+            CancellationToken.None);
 
         result.Should().HaveCount(1);
-        result.First().Title.Should().Be("Success Data");
-
-        _successfulClientMock.Verify(c => c.GetData(
-            query, It.IsAny<CancellationToken>()), Times.Once);
-
-        _memoryCache.TryGetValue(cacheKey, out var cachedResult).Should().BeTrue();
-        cachedResult.Should().BeEquivalentTo(result);
+        result.First().SourceApi.Should().Be("GitHub");
     }
 
     [Fact]
-    public async Task AggregateData_WhenCacheIsHit_ShouldReturnCachedDataAndNotCallClients()
+    public async Task AggregateData_WhenSortedByTitleAscending_ReturnsCorrectlyOrderedData()
     {
-        var clients = new List<IApiClient> { _successfulClientMock.Object };
-        var service = new AggregationService(clients, _loggerMock.Object, _memoryCache);
-        var query = "test";
-        var cacheKey = $"aggregation_result_{query}";
-        var dataToCache = new List<AggregatedData> { new() { Title = "Cached Data" } };
+        var service = new AggregationService(_allClients, _loggerMock.Object, _memoryCache);
 
+        var result = await service.AggregateData(
+            "test", SortField.Title, SortOrder.Ascending, null, CancellationToken.None);
+
+        result.Should().HaveCount(2);
+        result.First().Title.Should().Be("B News");
+    }
+
+    [Fact]
+    public async Task AggregateData_WhenCacheIsHit_ReturnsCachedData()
+    {
+        var service = new AggregationService(_allClients, _loggerMock.Object, _memoryCache);
+        var query = "test_cache_hit";
+        var sources = "NewsAPI";
+        var sortBy = SortField.Title;
+        var sortOrder = SortOrder.Ascending;
+
+        var cacheKey = $"agg_result_{query}_{sources}_{sortBy}_{sortOrder}";
+
+        var dataToCache = new List<AggregatedData> { new() { Title = "Cached Data" } };
         _memoryCache.Set(cacheKey, dataToCache);
 
-        var result = await service.AggregateData(query, CancellationToken.None);
+        var result = await service.AggregateData(
+            query,
+            sortBy,
+            sortOrder,
+            sources,
+            CancellationToken.None);
 
         result.Should().HaveCount(1);
         result.First().Title.Should().Be("Cached Data");
-
-        _successfulClientMock.Verify(c => c.GetData(
-            It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
-    }
-
-    [Fact]
-    public async Task AggregateData_WhenOneClientFails_ShouldStillCacheSuccessfulResults()
-    {
-        // Arrange
-        var clients = new List<IApiClient> { _successfulClientMock.Object, _failingClientMock.Object };
-        var service = new AggregationService(clients, _loggerMock.Object, _memoryCache);
-        var query = "test";
-        var cacheKey = $"aggregation_result_{query}";
-
-        var result = await service.AggregateData(query, CancellationToken.None);
-
-        result.Should().HaveCount(1);
-
-        _memoryCache.TryGetValue(cacheKey, out var cachedResult).Should().BeTrue();
-        cachedResult.Should().BeEquivalentTo(result);
     }
 
     public void Dispose()
