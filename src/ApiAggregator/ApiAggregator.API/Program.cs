@@ -17,7 +17,7 @@ services.AddRateLimiter(options =>
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.AddFixedWindowLimiter(policyName: "default", limiterOptions =>
     {
-        limiterOptions.PermitLimit = 2;
+        limiterOptions.PermitLimit = 20;
         limiterOptions.Window = TimeSpan.FromMinutes(1);
     });
 });
