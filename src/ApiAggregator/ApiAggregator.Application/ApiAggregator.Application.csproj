@@ -7,7 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ApiAggregator.Common\ApiAggregator.Common.csproj" />
     <ProjectReference Include="..\ApiAggregator.DependencyInjection\ApiAggregator.DependencyInjection.csproj" />
     <ProjectReference Include="..\ApiAggregator.Domain\ApiAggregator.Domain.csproj" />
   </ItemGroup>

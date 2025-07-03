@@ -10,12 +10,14 @@ var env = builder.Environment;
 builder.Logging.ConfigureLogging(configuration);
 services.ConfigureDependencyInjection(configuration);
 
+services.AddMemoryCache();
+
 services.AddRateLimiter(options =>
 {
     options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
     options.AddFixedWindowLimiter(policyName: "default", limiterOptions =>
     {
-        limiterOptions.PermitLimit = 20;
+        limiterOptions.PermitLimit = 2;
         limiterOptions.Window = TimeSpan.FromMinutes(1);
     });
 });
@@ -39,10 +41,12 @@ if (env.IsDevelopment())
     app.UseDeveloperExceptionPage();
 }
 
-app.UseRateLimiter();
+
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseRateLimiter();
 
 app.UseAuthorization();
 

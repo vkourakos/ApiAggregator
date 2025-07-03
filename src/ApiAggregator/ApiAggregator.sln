@@ -1,13 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.13.35828.75 d17.13
+VisualStudioVersion = 17.13.35828.75
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiAggregator.API", "ApiAggregator.API\ApiAggregator.API.csproj", "{6C6F19A7-EF25-44BB-9C55-D16AF814EEF5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiAggregator.Application", "ApiAggregator.Application\ApiAggregator.Application.csproj", "{6A6A25CC-5E07-48C7-8F91-B3DB5C5FC421}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiAggregator.Common", "ApiAggregator.Common\ApiAggregator.Common.csproj", "{271C0631-BE01-46F0-83C3-4C0CB15E96E1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiAggregator.DependencyInjection", "ApiAggregator.DependencyInjection\ApiAggregator.DependencyInjection.csproj", "{6C7407E4-A16C-46C7-8F31-53A2B7394003}"
 EndProject
@@ -31,10 +29,6 @@ Global
 		{6A6A25CC-5E07-48C7-8F91-B3DB5C5FC421}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6A6A25CC-5E07-48C7-8F91-B3DB5C5FC421}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6A6A25CC-5E07-48C7-8F91-B3DB5C5FC421}.Release|Any CPU.Build.0 = Release|Any CPU
-		{271C0631-BE01-46F0-83C3-4C0CB15E96E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{271C0631-BE01-46F0-83C3-4C0CB15E96E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{271C0631-BE01-46F0-83C3-4C0CB15E96E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{271C0631-BE01-46F0-83C3-4C0CB15E96E1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{6C7407E4-A16C-46C7-8F31-53A2B7394003}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{6C7407E4-A16C-46C7-8F31-53A2B7394003}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6C7407E4-A16C-46C7-8F31-53A2B7394003}.Release|Any CPU.ActiveCfg = Release|Any CPU
