@@ -4,6 +4,7 @@ using ApiAggregator.Infrastructure.Responses;
 using AutoMapper;
 using Microsoft.Extensions.Configuration;
 using System.Net.Http.Json;
+using System.Web;
 
 namespace ApiAggregator.Infrastructure.Clients;
 
@@ -18,13 +19,23 @@ public class GitHubApiClient : IApiClient
         _httpClient = httpClient;
         _mapper = mapper;
         _httpClient.BaseAddress = new Uri(configuration["ApiSettings:GitHubApi:BaseUrl"]!);
-        _httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("ApiAggregator");
+        httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", "ApiAggregator");
         _httpClient.DefaultRequestHeaders.Accept.Add(new("application/vnd.github+json"));
     }
 
     public async Task<IEnumerable<AggregatedData>> GetData(string query, CancellationToken cancellationToken)
     {
-        var repos = await _httpClient.GetFromJsonAsync<List<GitHubRepo>>($"users/{query}/repos", cancellationToken);
+        if (string.IsNullOrWhiteSpace(query) || query.Contains(' '))
+        {
+            return [];
+        }
+
+        var encodedQuery = HttpUtility.UrlEncode(query);
+
+        var requestUri = $"users/{encodedQuery}/repos?sort=pushed&per_page=5";
+
+        var repos = await _httpClient.GetFromJsonAsync<List<GitHubRepo>>(requestUri, cancellationToken);
+
         return _mapper.Map<IEnumerable<AggregatedData>>(repos) ?? [];
     }
 }

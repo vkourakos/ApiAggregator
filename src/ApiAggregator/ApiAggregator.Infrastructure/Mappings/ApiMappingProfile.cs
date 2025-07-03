@@ -12,9 +12,12 @@ public class ApiMappingProfile : Profile
             .ForMember(dest => dest.SourceApi, opt =>
                 opt.MapFrom(src => "WeatherAPI.com"))
             .ForMember(dest => dest.Title, opt =>
-                opt.MapFrom(src => $"Weather in {src.Location.Name}"))
+                opt.MapFrom(src => $"Weather in {src.Location.Name}, {src.Location.Country}"))
             .ForMember(dest => dest.Content, opt =>
-                opt.MapFrom(src => $"Currently {src.Current.TempC}°C and {src.Current.Condition.Text}."))
+                opt.MapFrom(src =>
+                    $"Currently {src.Current.TempC}°C ({src.Current.Condition.Text}). " +
+                    $"Feels like {src.Current.FeelslikeC}°C. " +
+                    $"Wind is {src.Current.WindKph} kph from the {src.Current.WindDir}."))
             .ForMember(dest => dest.Url, opt =>
                 opt.MapFrom(src => "https://www.weatherapi.com/"))
             .ForMember(dest => dest.PublishedDate, opt =>
