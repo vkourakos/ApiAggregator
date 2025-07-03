@@ -1,4 +1,6 @@
 using ApiAggregator.Infrastructure.Startup;
+using Microsoft.AspNetCore.RateLimiting;
+using System.Text.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 var configuration = builder.Configuration;
@@ -8,7 +10,21 @@ var env = builder.Environment;
 builder.Logging.ConfigureLogging(configuration);
 services.ConfigureDependencyInjection(configuration);
 
-builder.Services.AddControllers();
+services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    options.AddFixedWindowLimiter(policyName: "default", limiterOptions =>
+    {
+        limiterOptions.PermitLimit = 20;
+        limiterOptions.Window = TimeSpan.FromMinutes(1);
+    });
+});
+
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 
 services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
 builder.Services.AddEndpointsApiExplorer();
@@ -22,6 +38,8 @@ if (env.IsDevelopment())
     app.EnableSwagger();
     app.UseDeveloperExceptionPage();
 }
+
+app.UseRateLimiter();
 
 app.UseHttpsRedirection();
 app.UseRouting();
